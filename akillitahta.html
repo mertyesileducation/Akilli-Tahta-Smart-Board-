@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mert Yeşil Eğitim Portalı - Akıllı Tahta Flipbook v1.1</title>
+
+  <!-- PWA Manifest & Theme -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <!-- StPageFlip -->
+  <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --accent: #0284c7;
+      --bg-main: #f8fafc;
+      --surface: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 20px 35px -10px rgba(0, 0, 0, 0.12);
+      --shadow-book-3d: 25px 25px 45px rgba(0,0,0,0.25), -12px 12px 25px rgba(0,0,0,0.12);
+      --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(var(--border-color) 1.2px, transparent 1.2px),
+        linear-gradient(to bottom, rgba(255,255,255,0.85), rgba(248,250,252,0.98));
+      background-size: 28px 28px, 100% 100%;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* SPLASH SCREEN */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+      text-align: center;
+    }
+
+    #splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 50px 70px;
+      border-radius: 36px;
+      box-shadow: 0 30px 70px -15px rgba(37, 99, 235, 0.15), 0 15px 35px -10px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(25px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      max-width: 680px;
+      width: 92%;
+      animation: splashFloat 3.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes splashFloat {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+
+    .splash-logo-badge {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      width: 85px; height: 85px;
+      border-radius: 26px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.6rem;
+      box-shadow: 0 15px 30px rgba(37, 99, 235, 0.35);
+    }
+
+    .splash-title {
+      font-family: var(--font-heading);
+      font-size: 2.3rem; font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .splash-subtitle {
+      font-size: 1.25rem;
+      color: var(--primary);
+      font-weight: 700;
+      background: var(--primary-light);
+      padding: 8px 22px;
+      border-radius: 50px;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      display: inline-block;
+    }
+
+    .splash-version-tag {
+      font-size: 0.95rem; font-weight: 800;
+      letter-spacing: 1px; color: #64748b;
+      background: #e2e8f0;
+      padding: 6px 18px; border-radius: 12px;
+    }
+
+    .splash-loader-bar {
+      width: 220px; height: 6px;
+      background: #e2e8f0; border-radius: 10px;
+      overflow: hidden; margin-top: 6px;
+      position: relative;
+    }
+
+    .splash-loader-progress {
+      width: 0%; height: 100%;
+      background: linear-gradient(90deg, #2563eb, #38bdf8);
+      border-radius: 10px;
+      animation: loadProgress 1.8s ease-in-out forwards;
+    }
+
+    @keyframes loadProgress {
+      0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; }
+    }
+
+    /* HEADER */
+    header {
+      width: 100%; padding: 16px 40px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(20px);
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-container { display: flex; align-items: center; gap: 16px; }
+
+    .brand-icon {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white; width: 48px; height: 48px;
+      border-radius: 16px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.55rem; font-weight: 800;
+      color: var(--text-main); display: flex; align-items: center; gap: 14px;
+    }
+
+    .brand-badge {
+      background: #dbeafe; color: var(--primary);
+      font-family: var(--font-body); font-size: 0.8rem; font-weight: 700;
+      padding: 5px 14px; border-radius: 20px; letter-spacing: 0.8px;
+      border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+
+    .live-clock-card {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface); padding: 10px 18px; border-radius: 16px;
+      border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+      font-family: monospace; font-size: 1.25rem; font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .live-clock-card i { color: var(--primary); font-size: 1.1rem; }
+
+    /* MAIN CONTAINER */
+    .container {
+      max-width: 1000px; width: 100%; margin: 40px auto;
+      padding: 0 25px; flex: 1;
+    }
+
+    .shelf-header { margin-bottom: 30px; text-align: center; }
+
+    .shelf-title {
+      font-family: var(--font-heading);
+      font-size: 2.1rem; font-weight: 800; color: var(--text-main);
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+    }
+
+    .shelf-subtitle { color: var(--text-muted); font-size: 1.05rem; margin-top: 8px; }
+
+    .book-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px;
+      padding-bottom: 40px; max-width: 850px; margin: 0 auto;
+    }
+
+    @media (max-width: 650px) { .book-grid { grid-template-columns: 1fr; } }
+
+    .book-card {
+      background: var(--surface); border-radius: 24px; padding: 22px;
+      border: 1px solid var(--border-color); box-shadow: var(--shadow-md);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer; display: flex; flex-direction: column; position: relative; overflow: hidden;
+    }
+
+    .book-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0; transition: opacity 0.3s ease;
+    }
+
+    .book-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: var(--shadow-lg), 0 0 25px rgba(37, 99, 235, 0.15);
+      border-color: rgba(37, 99, 235, 0.35);
+    }
+
+    .book-card:hover::before { opacity: 1; }
+
+    .book-cover-wrapper {
+      position: relative; width: 100%; height: 360px; border-radius: 16px;
+      overflow: hidden; margin-bottom: 18px; box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+      background: #e2e8f0; display: flex; align-items: center; justify-content: center;
+    }
+
+    .book-cover-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .book-card:hover .book-cover-img { transform: scale(1.06); }
+
+    .book-badge {
+      position: absolute; top: 14px; right: 14px; background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px); color: white; font-size: 0.8rem; font-weight: 700;
+      padding: 6px 14px; border-radius: 12px; letter-spacing: 0.5px;
+    }
+
+    .book-info { display: flex; flex-direction: column; gap: 8px; }
+    .book-title { font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--text-main); line-height: 1.35; }
+    .book-meta { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+
+    .btn-open-book {
+      margin-top: 14px; width: 100%; padding: 14px; border-radius: 14px; border: none;
+      background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.25s ease; cursor: pointer;
+    }
+
+    .book-card:hover .btn-open-book { background: var(--primary); color: white; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); }
+
+    /* READER MODAL */
+    .modal-reader {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(16px); z-index: 1000; display: flex; flex-direction: column;
+      opacity: 0; visibility: hidden; transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-reader.active { opacity: 1; visibility: visible; }
+
+    .reader-toolbar {
+      height: 68px; background: rgba(30, 41, 59, 0.88); border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 0 30px; display: flex; align-items: center; justify-content: space-between; color: white; z-index: 20;
+    }
+
+    .reader-book-title {
+      font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700;
+      display: flex; align-items: center; gap: 14px; max-width: 35%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .reader-controls {
+      display: flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.75);
+      padding: 6px 16px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-ctrl {
+      background: transparent; border: none; color: rgba(255, 255, 255, 0.85);
+      width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease;
+    }
+
+    .btn-ctrl:hover { background: rgba(255, 255, 255, 0.18); color: white; }
+    .btn-ctrl.active { background: var(--primary); color: white; }
+
+    .page-jump-box { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: rgba(255, 255, 255, 0.9); padding: 0 8px; }
+
+    .page-jump-input {
+      width: 52px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 8px; color: white; text-align: center; font-weight: 700; padding: 4px 0; font-size: 0.9rem;
+    }
+
+    .page-jump-input:focus { outline: none; border-color: var(--primary); background: rgba(255, 255, 255, 0.25); }
+
+    .btn-close-reader {
+      background: #ef4444; color: white; border: none; padding: 9px 20px; border-radius: 12px;
+      font-weight: 700; font-size: 0.92rem; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      transition: all 0.25s ease; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-close-reader:hover { background: #dc2626; transform: scale(1.02); }
+
+    /* READER STAGE */
+    .reader-stage {
+      flex: 1; display: flex; justify-content: center; align-items: center;
+      position: relative; padding: 20px; overflow: hidden;
+    }
+
+    .flipbook-viewport {
+      display: flex; justify-content: center; align-items: center;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform-origin: center center;
+    }
+
+    .stPageFlip { box-shadow: var(--shadow-book-3d); border-radius: 8px; }
+
+    .page-wrapper { background: #ffffff; overflow: hidden; }
+
+    .page-content {
+      width: 100%; height: 100%; background: #ffffff; position: relative;
+      display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;
+    }
+
+    .page-content canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
+
+    .page-wrapper.--left .page-content::after {
+      content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 40px;
+      background: linear-gradient(to left, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.04) 70%, transparent 100%); pointer-events: none;
+    }
+
+    .page-wrapper.--right .page-content::after {
+      content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 40px;
+      background: linear-gradient(to right, rgba(0,0,0,0.22) 0%, rgba(0,0,0,0.04) 70%, transparent 100%); pointer-events: none;
+    }
+
+    /* THUMBNAILS BAR */
+    .thumbnails-bar {
+      height: 110px; background: rgba(15, 23, 42, 0.92); border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex; align-items: center; gap: 14px; padding: 10px 24px; overflow-x: auto;
+      scroll-behavior: smooth; z-index: 15;
+    }
+
+    .thumbnails-bar::-webkit-scrollbar { height: 6px; }
+    .thumbnails-bar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.25); border-radius: 10px; }
+
+    .thumb-item {
+      height: 85px; min-width: 65px; border-radius: 8px; overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.2); cursor: pointer; position: relative;
+      transition: all 0.2s ease; opacity: 0.6; background: #cbd5e1;
+    }
+
+    .thumb-item:hover { opacity: 0.9; transform: translateY(-3px); }
+
+    .thumb-item.active {
+      opacity: 1; border-color: var(--primary); box-shadow: 0 0 12px var(--primary); transform: translateY(-5px);
+    }
+
+    .thumb-item canvas { width: 100%; height: 100%; object-fit: cover; }
+
+    .thumb-page-num {
+      position: absolute; bottom: 2px; right: 2px; background: rgba(0, 0, 0, 0.75);
+      color: white; font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; font-weight: 700;
+    }
+
+    .reader-loading {
+      position: absolute; display: flex; flex-direction: column; align-items: center; gap: 16px;
+      color: white; font-size: 1.1rem; font-weight: 600; background: rgba(15, 23, 42, 0.88);
+      padding: 28px 45px; border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px); z-index: 30;
+    }
+
+    .reader-loading i { font-size: 2.6rem; color: var(--primary); }
+
+    /* FOOTER */
+    footer {
+      text-align: center; color: var(--text-muted); font-size: 0.95rem;
+      border-top: 1px solid var(--border-color); background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px); display: flex; justify-content: space-between; align-items: center; padding: 18px 45px;
+    }
+
+    .footer-version {
+      font-weight: 800; color: var(--primary); background: var(--primary-light);
+      padding: 4px 14px; border-radius: 12px; border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SPLASH SCREEN -->
+  <div id="splash-screen">
+    <div class="splash-card">
+      <div class="splash-logo-badge">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <div>
+        <h1 class="splash-title">Mert Yeşil Eğitim Portalı</h1>
+        <div style="margin-top: 10px; display:flex; align-items:center; justify-content:center; gap:10px;">
+          <span class="splash-subtitle">Akıllı Tahta Sistemine Hoş Geldiniz</span>
+        </div>
+        <div style="margin-top: 12px;">
+          <span class="splash-version-tag">Akıllı Tahta v1.1</span>
+        </div>
+      </div>
+      <div class="splash-loader-bar">
+        <div class="splash-loader-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand-container">
+      <div class="brand-icon">
+        <i class="fa-solid fa-book-open-reader"></i>
+      </div>
+      <div class="brand-title">
+        Mert Yeşil Eğitim Portalı
+        <span class="brand-badge"><i class="fa-solid fa-display"></i> AKILLI TAHTA MODU</span>
+      </div>
+    </div>
+
+    <div class="live-clock-card">
+      <i class="fa-regular fa-clock"></i>
+      <span id="live-clock">00:00:00</span>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="container">
+    <div class="shelf-header">
+      <h2 class="shelf-title"><i class="fa-solid fa-book-bookmark" style="color: var(--primary);"></i> Dijital Ders Kitapları</h2>
+      <p class="shelf-subtitle">7. Sınıf Fen Bilimleri ders fasiküllerinden birini seçerek akıllı tahta modunda inceleyin.</p>
+    </div>
+
+    <div class="book-grid" id="book-grid">
+      <!-- Books rendered dynamically from JavaScript -->
+    </div>
+  </main>
+
+  <!-- FLIPBOOK READER MODAL -->
+  <div class="modal-reader" id="modal-reader">
+    <div class="reader-toolbar">
+      <div class="reader-book-title" id="reader-book-title">
+        <i class="fa-solid fa-book-open" style="color: #38bdf8;"></i>
+        <span>Kitap Yükleniyor...</span>
+      </div>
+
+      <div class="reader-controls">
+        <button class="btn-ctrl" id="btn-first-page" title="İlk Sayfa"><i class="fa-solid fa-angles-left"></i></button>
+        <button class="btn-ctrl" id="btn-prev-page" title="Önceki Sayfa"><i class="fa-solid fa-chevron-left"></i></button>
+        
+        <div class="page-jump-box">
+          <input type="number" id="page-jump-input" class="page-jump-input" min="1" value="1">
+          <span id="page-total-count">/ 1</span>
+        </div>
+
+        <button class="btn-ctrl" id="btn-next-page" title="Sonraki Sayfa"><i class="fa-solid fa-chevron-right"></i></button>
+        <button class="btn-ctrl" id="btn-last-page" title="Son Sayfa"><i class="fa-solid fa-angles-right"></i></button>
+        
+        <div style="width: 1px; height: 22px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        
+        <button class="btn-ctrl" id="btn-zoom-in" title="Yakınlaştır"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+        <button class="btn-ctrl" id="btn-zoom-out" title="Uzaklaştır"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+        <button class="btn-ctrl" id="btn-sound-toggle" title="Ses Efekti AÇ/KAPAT"><i class="fa-solid fa-volume-high"></i></button>
+        <button class="btn-ctrl" id="btn-thumbs-toggle" title="Küçük Resimleri Göster/Gizle"><i class="fa-solid fa-border-all"></i></button>
+        <button class="btn-ctrl" id="btn-fullscreen" title="Tam Ekran"><i class="fa-solid fa-expand"></i></button>
+      </div>
+
+      <button class="btn-close-reader" id="btn-close-reader">
+        <i class="fa-solid fa-xmark"></i> Kapat (ESC)
+      </button>
+    </div>
+
+    <div class="reader-stage">
+      <div id="reader-loading" class="reader-loading">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>PDF Sayfaları Netleştiriliyor...</span>
+      </div>
+
+      <div class="flipbook-viewport" id="flipbook-viewport">
+        <div id="flipbook-container"></div>
+      </div>
+    </div>
+
+    <div class="thumbnails-bar" id="thumbnails-bar">
+      <!-- Thumbnails rendered dynamically -->
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>Mert Yeşil Eğitim Portalı &copy; 2026</span>
+    <span class="footer-version">Akıllı Tahta v1.1</span>
+  </footer>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    // Güvenilir CDN PDF Adresi
+    const SAMPLE_PDF_URL = '/dersler/7/files/fen/1.ÜNİTE 1.KONU FASİKÜLÜ.pdf';
+    const SAMPLE_PDF_URL2 = '/dersler/7/files/fen/1.ÜNİTE 2.KONU FASİKÜLÜ.pdf';
+    const SAMPLE_PDF_URL3 = '/dersler/7/files/fen/2.ÜNİTE 1.KONU FASİKÜLÜ.pdf';
+    const SAMPLE_PDF_URL4 = '/dersler/7/files/fen/2.ÜNİTE 2.KONU FASİKÜLÜ.pdf';
+    const SAMPLE_PDF_URL5 = '/dersler/7/files/fen/3.ÜNİTE 1.KONU FASİKÜLÜ.pdf';
+
+
+    const BOOKS_DATABASE = [
+      {
+        id: 'fen-7-fasikul-1',
+        title: '7. Sınıf Fen Bilimleri - Türkiye ve Uzay Araştırmaları',
+        grade: '7. Sınıf',
+        type: '1.Ünite 1.Konu Fasikülü',
+        coverUrl: '/dersler/filestahta/7.SINIF FEN BİLİMLERİ 1.ÜNİTE 1.KONU FASİKÜLÜ KAPAK.png',
+        pdfUrl: SAMPLE_PDF_URL
+      },
+      {
+        id: 'fen-7-fasikul-2',
+        title: '7. Sınıf Fen Bilimleri - Uzayda Neler Var?',
+        grade: '7. Sınıf',
+        type: '1.Ünite 2.Konu Fasikülü',
+        coverUrl: '/dersler/filestahta/7.SINIF FEN BİLİMLERİ 1.ÜNİTE 2.KONU FASİKÜLÜ KAPAK.png',
+        pdfUrl: SAMPLE_PDF_URL2
+      },
+      {
+        id: 'fen-7-fasikul-3',
+        title: '7. Sınıf Fen Bilimleri - Kuvvet, İş ve Enerji İlişkisi',
+        grade: '7. Sınıf',
+        type: '2.Ünite 1.Konu Fasikülü',
+        coverUrl: '/dersler/filestahta/7.SINIF FEN BİLİMLERİ 2.ÜNİTE 1.KONU FASİKÜLÜ KAPAK.png',
+        pdfUrl: SAMPLE_PDF_URL3
+      },
+      {
+        id: 'fen-7-fasikul-4',
+        title: '7. Sınıf Fen Bilimleri - Enerji Dönüşümleri',
+        grade: '7. Sınıf',
+        type: '2.Ünite 2.Konu Fasikülü',
+        coverUrl: '/dersler/filestahta/7.SINIF FEN BİLİMLERİ 2.ÜNİTE 2.KONU FASİKÜLÜ KAPAK.png',
+        pdfUrl: SAMPLE_PDF_URL4
+      },
+      {
+        id: 'fen-7-fasikul-5',
+        title: '7. Sınıf Fen Bilimleri - Sindirim Sistemi',
+        grade: '7. Sınıf',
+        type: '3.Ünite 1.Konu Fasikülü',
+        coverUrl: '/dersler/filestahta/7.SINIF FEN BİLİMLERİ 3.ÜNİTE 1.KONU FASİKÜLÜ KAPAK.png',
+        pdfUrl: SAMPLE_PDF_URL5
+      }
+    ];
+
+    let pageFlipInstance = null;
+    let currentZoom = 1;
+    let soundEnabled = true;
+    let audioCtx = null;
+    let currentLoadingSession = 0;
+
+    /* SERVICE WORKER KAYDI */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker Başarılı:', reg.scope))
+          .catch(err => console.error('Service Worker Hatası:', err));
+      });
+    }
+
+    /* SES EFEKTİ */
+    function playPageTurnSound() {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const bufferSize = audioCtx.sampleRate * 0.12;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1200, audioCtx.currentTime);
+
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+        noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+        noise.start();
+      } catch (e) {}
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('splash-screen').classList.add('hidden');
+      }, 1800);
+
+      renderBookGrid();
+      startLiveClock();
+    });
+
+    function startLiveClock() {
+      const clockEl = document.getElementById('live-clock');
+      const update = () => {
+        const now = new Date();
+        clockEl.innerText = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      };
+      update();
+      setInterval(update, 1000);
+    }
+
+    function renderBookGrid() {
+      const grid = document.getElementById('book-grid');
+      grid.innerHTML = BOOKS_DATABASE.map(book => `
+        <div class="book-card" onclick="openBookReader('${book.id}')">
+          <div class="book-cover-wrapper">
+            <img src="${book.coverUrl}" alt="${book.title}" class="book-cover-img">
+            <span class="book-badge">${book.grade}</span>
+          </div>
+          <div class="book-info">
+            <h3 class="book-title">${book.title}</h3>
+            <div class="book-meta">
+              <span><i class="fa-regular fa-file-lines"></i> ${book.type}</span>
+              <span style="color: var(--primary); font-weight:700;">Ders Kitabı</span>
+            </div>
+            <button class="btn-open-book">
+              <i class="fa-solid fa-book-open"></i> Kitabı Oku
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* KÖKTEN KİLİTLENMESİZ OKUYUCU MANTIĞI */
+    async function openBookReader(bookId) {
+      const book = BOOKS_DATABASE.find(b => b.id === bookId);
+      if (!book) return;
+
+      closeReader();
+      const thisSession = ++currentLoadingSession;
+
+      const modal = document.getElementById('modal-reader');
+      const loading = document.getElementById('reader-loading');
+      const viewport = document.getElementById('flipbook-viewport');
+      const titleEl = document.getElementById('reader-book-title');
+      const thumbsBar = document.getElementById('thumbnails-bar');
+
+      modal.classList.add('active');
+      loading.style.display = 'flex';
+      titleEl.querySelector('span').innerText = `${book.title}`;
+      currentZoom = 1;
+      updateZoomTransform();
+
+      viewport.innerHTML = `<div id="flipbook-container"></div>`;
+      thumbsBar.innerHTML = '';
+      const container = document.getElementById('flipbook-container');
+
+      try {
+        const loadingTask = pdfjsLib.getDocument(book.pdfUrl);
+        const pdfDoc = await loadingTask.promise;
+
+        if (thisSession !== currentLoadingSession) return;
+
+        const pageCount = pdfDoc.numPages;
+        document.getElementById('page-total-count').innerText = `/ ${pageCount}`;
+        document.getElementById('page-jump-input').max = pageCount;
+
+        const renderScale = 2.0;
+
+        for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+          if (thisSession !== currentLoadingSession) return;
+
+          const page = await pdfDoc.getPage(pageNum);
+          const pageViewport = page.getViewport({ scale: renderScale });
+
+          const pageDiv = document.createElement('div');
+          pageDiv.className = 'page-wrapper';
+
+          const pageContent = document.createElement('div');
+          pageContent.className = 'page-content';
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = pageViewport.height;
+          canvas.width = pageViewport.width;
+
+          pageContent.appendChild(canvas);
+          pageDiv.appendChild(pageContent);
+          container.appendChild(pageDiv);
+
+          await page.render({ canvasContext: context, viewport: pageViewport }).promise;
+
+          if (thisSession !== currentLoadingSession) return;
+
+          const thumbDiv = document.createElement('div');
+          thumbDiv.className = `thumb-item ${pageNum === 1 ? 'active' : ''}`;
+          
+          const thumbCanvas = document.createElement('canvas');
+          const thumbContext = thumbCanvas.getContext('2d');
+          const thumbViewport = page.getViewport({ scale: 0.18 });
+          thumbCanvas.height = thumbViewport.height;
+          thumbCanvas.width = thumbViewport.width;
+
+          thumbDiv.appendChild(thumbCanvas);
+          thumbDiv.innerHTML += `<span class="thumb-page-num">${pageNum}</span>`;
+          thumbsBar.appendChild(thumbDiv);
+
+          page.render({ canvasContext: thumbContext, viewport: thumbViewport });
+
+          const targetPageIndex = pageNum - 1;
+          thumbDiv.addEventListener('click', () => {
+            if (pageFlipInstance) pageFlipInstance.turnToPage(targetPageIndex);
+          });
+        }
+
+        if (thisSession !== currentLoadingSession) return;
+
+        loading.style.display = 'none';
+
+        const isTablet = window.innerWidth < 1024;
+        const bookWidth = isTablet ? 380 : 460;
+        const bookHeight = isTablet ? 520 : 620;
+
+        pageFlipInstance = new St.PageFlip(container, {
+          width: bookWidth,
+          height: bookHeight,
+          size: 'fixed',
+          showCover: true,
+          usePortrait: isTablet,
+          flippingTime: 600
+        });
+
+        pageFlipInstance.loadFromHTML(document.querySelectorAll('.page-wrapper'));
+
+        pageFlipInstance.on('flip', (e) => {
+          updatePageUI(e.data + 1);
+          playPageTurnSound();
+        });
+
+        updatePageUI(1);
+
+      } catch (err) {
+        console.error('PDF Açılma Hatası:', err);
+        loading.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i><span>Kitap Açılırken Bir Hata Oluştu!</span>`;
+      }
+    }
+
+    function updatePageUI(pageNum) {
+      document.getElementById('page-jump-input').value = pageNum;
+      const thumbs = document.querySelectorAll('.thumb-item');
+      thumbs.forEach((t, idx) => {
+        if (idx === pageNum - 1) {
+          t.classList.add('active');
+          t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        } else {
+          t.classList.remove('active');
+        }
+      });
+    }
+
+    function closeReader() {
+      currentLoadingSession++;
+      const modal = document.getElementById('modal-reader');
+      modal.classList.remove('active');
+
+      if (pageFlipInstance) {
+        try { pageFlipInstance.destroy(); } catch (e) {}
+        pageFlipInstance = null;
+      }
+
+      const viewport = document.getElementById('flipbook-viewport');
+      const thumbsBar = document.getElementById('thumbnails-bar');
+      if (viewport) viewport.innerHTML = '';
+      if (thumbsBar) thumbsBar.innerHTML = '';
+    }
+
+    function updateZoomTransform() {
+      document.getElementById('flipbook-viewport').style.transform = `scale(${currentZoom})`;
+    }
+
+    // EVENT LISTENERS
+    document.getElementById('btn-close-reader').addEventListener('click', closeReader);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeReader();
+      if (pageFlipInstance) {
+        if (e.key === 'ArrowRight') pageFlipInstance.flipNext();
+        if (e.key === 'ArrowLeft') pageFlipInstance.flipPrev();
+      }
+    });
+
+    document.getElementById('btn-prev-page').addEventListener('click', () => pageFlipInstance && pageFlipInstance.flipPrev());
+    document.getElementById('btn-next-page').addEventListener('click', () => pageFlipInstance && pageFlipInstance.flipNext());
+    document.getElementById('btn-first-page').addEventListener('click', () => pageFlipInstance && pageFlipInstance.turnToPage(0));
+    document.getElementById('btn-last-page').addEventListener('click', () => {
+      if (pageFlipInstance) pageFlipInstance.turnToPage(pageFlipInstance.getPageCount() - 1);
+    });
+
+    document.getElementById('page-jump-input').addEventListener('change', (e) => {
+      if (pageFlipInstance) {
+        const val = parseInt(e.target.value, 10);
+        if (val >= 1 && val <= pageFlipInstance.getPageCount()) {
+          pageFlipInstance.turnToPage(val - 1);
+        }
+      }
+    });
+
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+      if (currentZoom < 1.5) { currentZoom += 0.1; updateZoomTransform(); }
+    });
+
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+      if (currentZoom > 0.7) { currentZoom -= 0.1; updateZoomTransform(); }
+    });
+
+    document.getElementById('btn-sound-toggle').addEventListener('click', (e) => {
+      soundEnabled = !soundEnabled;
+      e.currentTarget.querySelector('i').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+    });
+
+    document.getElementById('btn-thumbs-toggle').addEventListener('click', () => {
+      const thumbsBar = document.getElementById('thumbnails-bar');
+      thumbsBar.style.display = thumbsBar.style.display === 'none' ? 'flex' : 'none';
+    });
+
+    document.getElementById('btn-fullscreen').addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    });
+  </script>
+</body>
+</html>
