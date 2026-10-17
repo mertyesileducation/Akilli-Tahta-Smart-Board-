@@ -54,6 +54,7 @@ html[data-theme="dark"] {
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 [hidden] { display: none !important; }
+body.locked [data-upload], body:not(.locked) [data-locked-only] { display: none !important; }
 img { -webkit-user-drag: none; }
 
 body {

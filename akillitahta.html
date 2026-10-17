@@ -53,7 +53,7 @@
     </label>
 
     <div class="header-actions">
-      <button class="btn btn-primary" id="btn-add-book" title="Kitap ekle (Google Drive, bağlantı veya dosya)">
+      <button class="btn btn-primary" id="btn-add-book" data-upload title="Kitap ekle (Google Drive, bağlantı veya dosya)">
         <i class="fa-solid fa-plus"></i><span>Kitap Ekle</span>
       </button>
       <button class="icon-btn" id="btn-open-board" title="Beyaz tahta"><i class="fa-solid fa-chalkboard"></i></button>
@@ -97,7 +97,7 @@
         <button class="tab" data-tab="fav"><i class="fa-solid fa-star"></i> Favoriler <span class="count"></span></button>
         <button class="tab" data-tab="recent"><i class="fa-solid fa-clock-rotate-left"></i> Son Okunanlar <span class="count"></span></button>
         <button class="tab" data-tab="drive"><i class="fa-brands fa-google-drive"></i> Google Drive <span class="count"></span></button>
-        <button class="tab" data-tab="mine"><i class="fa-solid fa-folder-plus"></i> Eklediklerim <span class="count"></span></button>
+        <button class="tab" data-tab="mine" data-upload><i class="fa-solid fa-folder-plus"></i> Eklediklerim <span class="count"></span></button>
       </nav>
 
       <div class="chips" id="category-chips"></div>
@@ -107,8 +107,9 @@
       <div class="empty-state" id="empty-state" hidden>
         <i class="fa-solid fa-book-open"></i>
         <h3>Burada henüz kitap yok</h3>
-        <p>Google Drive bağlantısı, web adresi veya bilgisayarınızdaki bir PDF ile kitap ekleyin.</p>
-        <button class="btn btn-primary" data-action="add"><i class="fa-solid fa-plus"></i> Kitap Ekle</button>
+        <p data-upload>Google Drive bağlantısı, web adresi veya bilgisayarınızdaki bir PDF ile kitap ekleyin.</p>
+        <p data-locked-only>Kitaplar yönetici tarafından eklenir.</p>
+        <button class="btn btn-primary" data-action="add" data-upload><i class="fa-solid fa-plus"></i> Kitap Ekle</button>
       </div>
     </section>
   </main>
@@ -347,6 +348,7 @@
         <button class="icon-btn" value="cancel" formnovalidate title="Kapat"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="dialog-body">
+        <div data-upload>
         <h4><i class="fa-brands fa-google-drive"></i> Google Drive</h4>
         <label class="field">
           <span>Google API anahtarı (Drive API v3)</span>
@@ -361,6 +363,7 @@
           <input type="text" id="set-proxy" placeholder="https://vekil.ornek.com/?url={url}" spellcheck="false">
         </label>
         <div class="folder-list" id="folder-list"></div>
+        </div>
 
         <h4><i class="fa-solid fa-sliders"></i> Okuyucu</h4>
         <div class="grid-2">
@@ -402,7 +405,7 @@
         <h4><i class="fa-solid fa-database"></i> Veriler</h4>
         <div class="btn-row">
           <button type="button" class="btn btn-ghost" id="btn-export"><i class="fa-solid fa-file-export"></i> Yedekle (JSON)</button>
-          <label class="btn btn-ghost"><i class="fa-solid fa-file-import"></i> Yedeği yükle<input type="file" id="btn-import" accept="application/json,.json" hidden></label>
+          <label class="btn btn-ghost" data-upload><i class="fa-solid fa-file-import"></i> Yedeği yükle<input type="file" id="btn-import" accept="application/json,.json" hidden></label>
           <button type="button" class="btn btn-ghost danger" id="btn-reset"><i class="fa-solid fa-trash-can"></i> Tümünü sıfırla</button>
         </div>
         <div class="hint" id="storage-info"></div>
@@ -453,6 +456,7 @@
           <div><kbd>T</kbd> <kbd>Ctrl</kbd>+<kbd>F</kbd> <kbd>F</kbd></div><div>Küçük resimler, kitapta ara, tam ekran</div>
           <div><kbd>Esc</kbd></div><div>Aracı bırak / okuyucuyu kapat</div>
         </div>
+        <div data-upload>
         <h4><i class="fa-brands fa-google-drive"></i> Google Drive PDF'leri nasıl eklenir?</h4>
         <ol class="help-list">
           <li>Drive'da PDF'e (veya klasöre) sağ tıklayın → <b>Paylaş</b> → Genel erişim: <b>Bağlantıya sahip olan herkes</b>.</li>
@@ -461,6 +465,7 @@
           <li>Anahtar yoksa dosya Google'ın önizleyicisiyle açılır; kalem, lazer, spot ışığı ve perde yine kullanılabilir.</li>
         </ol>
         <p class="muted small">Paylaşım bağlantısı: <code>akillitahta.html#drive=DOSYA_ID&amp;s=5</code> biçimindeki adresler kitabı doğrudan 5. sayfadan açar.</p>
+        </div>
       </div>
     </form>
   </dialog>

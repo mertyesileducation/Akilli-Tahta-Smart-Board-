@@ -137,8 +137,10 @@ function toast(msg, type = 'info', ms = 3200, action = null) {
 /* ---------------- Ayarlar ---------------- */
 const DEFAULT_SETTINGS = { apiKey: '', proxy: '', theme: 'auto', sound: true, quality: 'high', defaultMode: 'flip', autoResume: true, autohide: '0' };
 const settings = Object.assign({}, DEFAULT_SETTINGS, store.get('settings', {}));
-const apiKey = () => (settings.apiKey || CFG.googleApiKey || '').trim();
-const proxyBase = () => (settings.proxy || CFG.corsProxy || '').trim();
+// Yükleme kilidi: true ise kütüphane yalnızca config.js'den yönetilir
+const LOCKED = !CFG.allowUserUploads;
+const apiKey = () => ((LOCKED ? '' : settings.apiKey) || CFG.googleApiKey || '').trim();
+const proxyBase = () => ((LOCKED ? '' : settings.proxy) || CFG.corsProxy || '').trim();
 const saveSettings = () => store.set('settings', settings);
 
 const darkQuery = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : { matches: false };
@@ -224,8 +226,17 @@ const Drive = {
 };
 
 /* ---------------- Kütüphane verisi ---------------- */
+// Kilitliyken yalnızca config.js'deki Drive klasörlerinden gelen kitaplar tutulur
+const CONFIG_FOLDER_IDS = new Set((CFG.driveFolders || []).map((f) => {
+  const p = Drive.parse(typeof f === 'string' ? f : (f.link || f.id));
+  return p ? p.id : null;
+}).filter(Boolean));
 let userBooks = store.get('library', []);
 let folderSources = store.get('folders', []);
+if (LOCKED) {
+  userBooks = userBooks.filter((b) => b.origin === 'drive-folder' && CONFIG_FOLDER_IDS.has(b.folderId));
+  folderSources = folderSources.filter((f) => CONFIG_FOLDER_IDS.has(f.id));
+}
 const favorites = new Set(store.get('favorites', []));
 const progress = store.get('progress', {});
 const covers = store.get('covers', {});
@@ -354,7 +365,7 @@ function renderLibrary() {
     const si = sourceInfo(b);
     const pr = progress[b.id];
     const pct = pr && pr.total ? Math.round(((pr.page + 1) / pr.total) * 100) : 0;
-    const editable = b.origin !== 'default';
+    const editable = !LOCKED && b.origin !== 'default';
     return `
       <article class="book-card" tabindex="0" data-id="${esc(b.id)}" style="animation-delay:${Math.min(i, 16) * 30}ms">
         <div class="book-cover-wrapper">
@@ -474,7 +485,7 @@ async function syncAllFolders(force = false) {
     return p ? { id: p.id, category: f.category || '' } : null;
   }).filter(Boolean);
   const all = [...configured];
-  folderSources.forEach((f) => { if (!all.find((c) => c.id === f.id)) all.push({ id: f.id, category: f.category }); });
+  if (!LOCKED) folderSources.forEach((f) => { if (!all.find((c) => c.id === f.id)) all.push({ id: f.id, category: f.category }); });
   const btn = $('#btn-sync-drive');
   btn.classList.add('spin');
   let total = 0;
@@ -489,6 +500,7 @@ async function syncAllFolders(force = false) {
 
 /* ---------------- Yerel dosyalar ---------------- */
 async function addLocalFiles(files, opts = {}) {
+  if (LOCKED) return;
   const pdfs = [...files].filter((f) => f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
   if (!pdfs.length) { toast('Lütfen PDF dosyası seçin.', 'warn'); return; }
   let save = opts.save !== false;
@@ -2153,6 +2165,7 @@ let addTab = 'drive';
 let pendingFiles = [];
 
 function openAddDialog(tab) {
+  if (LOCKED) return;
   const d = $('#add-dialog');
   $('#add-form').reset();
   pendingFiles = [];
@@ -2299,8 +2312,10 @@ function renderFolderList() {
 
 function saveSettingsFromDialog() {
   const prevKey = apiKey();
-  settings.apiKey = $('#set-apikey').value.trim();
-  settings.proxy = $('#set-proxy').value.trim();
+  if (!LOCKED) {
+    settings.apiKey = $('#set-apikey').value.trim();
+    settings.proxy = $('#set-proxy').value.trim();
+  }
   settings.defaultMode = $('#set-mode').value;
   settings.quality = $('#set-quality').value;
   settings.theme = $('#set-theme').value;
@@ -2324,6 +2339,7 @@ function exportData() {
 }
 
 async function importData(file) {
+  if (LOCKED) return;
   try {
     const j = JSON.parse(await file.text());
     if (!j || j.app !== 'mytahta' || !j.data) throw new Error('Geçersiz yedek dosyası.');
@@ -2356,6 +2372,11 @@ function handleHash() {
   if (h.get('kitap')) {
     book = findBook(h.get('kitap'));
     if (!book) toast('Bağlantıdaki kitap bulunamadı.', 'warn');
+  } else if (LOCKED && (h.get('drive') || h.get('pdf'))) {
+    // Kilitliyken yalnızca kütüphanedeki kitaplar bağlantıyla açılabilir
+    const p = h.get('drive') ? Drive.parse(h.get('drive')) : null;
+    book = p ? findBook('drive-' + p.id) : findBook('url-' + hashStr(h.get('pdf')));
+    if (!book) toast('Bu kitap kütüphanede yok; yalnızca yöneticinin eklediği kitaplar açılabilir.', 'warn', 5000);
   } else if (h.get('drive')) {
     const p = Drive.parse(h.get('drive'));
     if (p && p.type === 'file') {
@@ -2511,6 +2532,7 @@ function bindEvents() {
   document.addEventListener('drop', (e) => {
     if (!e.dataTransfer || !e.dataTransfer.files.length || e.target.closest('dialog')) return;
     e.preventDefault();
+    if (LOCKED) return;
     addLocalFiles(e.dataTransfer.files, { save: true, open: e.dataTransfer.files.length === 1 });
   });
 
@@ -2791,6 +2813,8 @@ function init() {
   $$('[data-app-version]').forEach((n) => { n.textContent = CFG.version; });
   $('#footer-year').textContent = new Date().getFullYear();
   document.title = `${CFG.appName} - Akıllı Tahta v${CFG.version}`;
+  document.body.classList.toggle('locked', LOCKED);
+  if (LOCKED && ui.tab === 'mine') ui.tab = 'all';
   applyTheme();
   buildPalette();
   updateSoundIcon();
