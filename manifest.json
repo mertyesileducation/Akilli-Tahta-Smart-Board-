@@ -1,21 +1,18 @@
 {
   "name": "Mert Yeşil Eğitim Portalı Akıllı Tahta",
   "short_name": "MY Eğitim Akıllı Tahta",
+  "description": "Akıllı tahtalar için dijital kitap okuyucu: Google Drive PDF'leri, kitap modu, çizim ve sınıf araçları.",
   "start_url": "akillitahta.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#2563eb",
-  "orientation": "portrait",
+  "orientation": "any",
+  "lang": "tr",
   "icons": [
-    {
-      "src": "icon.png",
-      "sizes": "256x256",
-      "type": "image/png"
-    },
-    {
-      "src": "icon.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Beyaz Tahta", "url": "akillitahta.html#tahta=1" }
   ]
 }
