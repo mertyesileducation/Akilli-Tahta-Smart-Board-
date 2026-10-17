@@ -10,6 +10,16 @@ window.TAHTA_CONFIG = {
   version: '2.0',
 
   /*
+   * Kullanıcıların uygulama içinden kitap eklemesine izin verilsin mi?
+   * false (önerilen): "Kitap Ekle", cihazdan yükleme, sürükle-bırak, yedek yükleme
+   * ve bağlantıyla rastgele PDF açma kapalıdır. Kitaplar yalnızca bu dosyadaki
+   * "books" ve "driveFolders" listelerinden gelir; API anahtarı da yalnızca
+   * buradan okunur.
+   * true: Herkes kendi tahtasına Drive/web/cihaz PDF'i ekleyebilir.
+   */
+  allowUserUploads: false,
+
+  /*
    * Google Drive API anahtarı (isteğe bağlı ama önerilir).
    * Anahtar varsa Drive PDF'leri tam özellikli "Kitap" ve "Sayfa" modlarında açılır,
    * Drive klasörleri otomatik olarak kütüphaneye aktarılır.

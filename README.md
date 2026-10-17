@@ -43,8 +43,15 @@ Bir Drive klasörünün tamamını otomatik getirmek için:
 driveFolders: [ { link: 'https://drive.google.com/drive/folders/KLASOR_ID', category: '8. Sınıf Fen' } ]
 ```
 
-**Sadece bu tahta için:** Uygulamada **Kitap Ekle** → *Google Drive*, *Web bağlantısı* veya *Bu cihazdan*.
-PDF'i sayfanın üzerine sürükleyip bırakmak da yeterli.
+### Yükleme kilidi (varsayılan: kapalı)
+
+`assets/config.js` içindeki `allowUserUploads: false` ayarı sayesinde tahtayı kullanan hiç kimse
+uygulama içinden kitap ekleyemez: **Kitap Ekle** düğmesi, cihazdan yükleme, sürükle-bırak, yedek yükleme,
+Ayarlar'daki API anahtarı alanı ve `#pdf=…` / `#drive=…` bağlantılarıyla kütüphane dışı dosya açma devre dışıdır.
+Kitaplar yalnızca bu dosyadaki `books` ve `driveFolders` listelerinden gelir (Drive klasörüne dosya koymak yeterli).
+
+İsterseniz `allowUserUploads: true` yaparak her tahtanın kendi kitaplarını eklemesine izin verebilirsiniz:
+o zaman **Kitap Ekle** → *Google Drive*, *Web bağlantısı* veya *Bu cihazdan* ve sürükle-bırak açılır.
 
 > Drive dosya/klasörleri **"Bağlantıya sahip olan herkes — Görüntüleyen"** olarak paylaşılmalıdır.
 
@@ -58,7 +65,7 @@ Anahtar eklendiğinde Drive PDF'leri de **kitap modu, metin arama, içindekiler,
 3. **Kimlik bilgileri → Kimlik bilgisi oluştur → API anahtarı**.
 4. Anahtarı kısıtlayın: *Uygulama kısıtlamaları* → **Web siteleri** (ör. `https://mertyesil.com.tr/*`),
    *API kısıtlamaları* → yalnızca **Google Drive API**.
-5. Anahtarı `assets/config.js` içindeki `googleApiKey` alanına veya uygulamada **Ayarlar** ekranına yapıştırın.
+5. Anahtarı `assets/config.js` içindeki `googleApiKey` alanına yapıştırın (yükleme kilidi kapalıysa uygulamadaki **Ayarlar** ekranına da girilebilir).
 
 Anahtar yalnızca herkese açık paylaşılmış dosyaları okuyabilir; özel dosyalarınıza erişim vermez.
 
